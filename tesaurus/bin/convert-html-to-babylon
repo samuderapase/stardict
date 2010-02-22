@@ -21,11 +21,12 @@ while (<>) {
 
     for ($l1) {
         s!</?(nobr|span)[^>]*>!!g;
+        s!^\s*<b>\s+</b>!!; # stupid visual markup
         s/&nbsp;/ /g;
         s/\s+/ /g; # sekalian ngilangin tab
         s/^\s+//g; s/\s+$//g;
     }
-    DEBUG "line=$. l1=$l1";
+    #DEBUG "line=$. l1=$l1";
 
     my $notcond;
     if ($l1 =~ m!^<b>\s*(.+?)\s*</b>\s*(.*)!) {
@@ -78,7 +79,7 @@ sub print_entry {
             $sep = "";
             my $comb = $content0->[$i]."#".$content0->[$i+1]; # harus ke temp var dulu! whatever.
             if ($comb =~ /(\w{3,})-#\1/) {
-                DEBUG "kata ulang: $1";
+                #DEBUG "kata ulang: $1";
             } else {
                 $content0->[$i] =~ s/-$//;
             }
