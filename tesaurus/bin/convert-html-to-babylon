@@ -67,7 +67,8 @@ sub print_entry {
     my ($entry0, $content0) = @_;
 
     # contoh: <b>adu domba, mengadu domba</b>
-    my @entries = split /, /, $entry0;
+    my @entries = ($entry0);
+    for (@entries) { s/, /|/g }
 
     my $content = "";
     for my $i (0..@$content0-1) {
