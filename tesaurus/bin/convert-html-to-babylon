@@ -1,0 +1,111 @@
+#!/usr/bin/perl -w
+
+# generate babylon format from html
+
+use strict;
+use Log::Log4perl qw(:easy);
+Log::Log4perl->easy_init($DEBUG);
+use Data::Dumper;
+$Data::Dumper::Indent = 0;
+$Data::Dumper::Terse = 1;
+
+my $entry;
+my $superentry;
+my $oldentry;
+my @content;
+
+LINE:
+while (<>) {
+    next unless m!^<DIV[^>]+>(.+)</DIV>!;
+    my $l1 = $1;
+
+    for ($l1) {
+        s!</?(nobr|span)[^>]*>!!g;
+        s/&nbsp;/ /g;
+        s/\s+/ /g; # sekalian ngilangin tab
+        s/^\s+//g; s/\s+$//g;
+    }
+    DEBUG "line=$. l1=$l1";
+
+    my $notcond;
+    if ($l1 =~ m!^<b>\s*(.+?)\s*</b>\s*(.*)!) {
+        my ($tmp1, $tmp2) = ($1, $2);
+
+        # not entry header, just <b>num</b> blah...
+        goto L1 if $tmp1 =~ /^\d+$/ && $tmp2;
+
+        # not entry header, specials
+        next LINE if $tmp1 =~ /^\s*$/; # baris kosong
+        next LINE if $tmp1 =~ /[\x80-\xff]/; # mengandung bullet, page header ENTRYA-ENTRYB
+        next LINE if $tmp1 =~ /^\d+$/; # page number
+        next LINE if $tmp1 =~ /^[A-Z]$/; # huruf, chapter header
+        next LINE if $tmp1 =~ /^[\x00-\x1f]$/; # stupid stuff, contohnya ada <b>^X</b>
+
+        print_entry($entry, \@content) if $entry;
+        $oldentry = $entry;
+        $entry = $tmp1;
+        @content = ($tmp2);
+
+        if ($entry =~ /--|~/) {
+            if (!$superentry) {
+                $superentry = $oldentry;
+            }
+            $entry =~ s/--|~/$superentry/g;
+        } else {
+            $superentry = "";
+        }
+        $notcond++;
+    }
+
+  L1:
+    unless ($notcond) {
+        push @content, $l1;
+    }
+}
+
+sub print_entry {
+    my ($entry0, $content0) = @_;
+
+    # contoh: <b>adu domba, mengadu domba</b>
+    my @entries = split /, /, $entry0;
+
+    my $content = "";
+    for my $i (0..@$content0-1) {
+        my $sep;
+        # problem 1: membedakan strip untuk hyphenation dan strip untuk kata ulang (heuristik)
+        if ($i < @$content0-1 && $content0->[$i] =~ /-$/) {
+            $sep = "";
+            my $comb = $content0->[$i]."#".$content0->[$i+1]; # harus ke temp var dulu! whatever.
+            if ($comb =~ /(\w{3,})-#\1/) {
+                DEBUG "kata ulang: $1";
+            } else {
+                $content0->[$i] =~ s/-$//;
+            }
+        } else {
+            $sep = " ";
+        }
+        $content .= "$content0->[$i]";
+        $content .= $sep if $content0->[$i];
+    }
+    for (@entries) {
+        # problem 2: visual markup generates stuffs like <b>foo<i> </b>ki</i>
+        print #"ENTRY:",
+            strip_tags($_), "\n";
+        print mark_markers(strip_tags($content)), "\n\n";
+    }
+}
+
+sub strip_tags {
+    my ($s) = @_;
+    $s =~ s!</?[^>]+>!!g;
+    $s =~ s/\s+/ /g; # bisa terbentuk dobel spaces lagi
+    $s;
+}
+
+sub mark_markers {
+    my ($s) = @_;
+    $s =~ s/\b(a|adv|ant|cak|dsb|ki|n|num|p|pron|v)\b/[$1]/g;
+    $s =~ s/\[ant\]/<br><br>[ant]/g;
+    $s =~ s/\b(\d+)\b/($1 > 1 ? "<br><br>" : "") . $1 . ")"/eg; # biar lebih jelas aja
+    $s;
+}
