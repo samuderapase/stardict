@@ -1,0 +1,21 @@
+[#, bdg, Mon, 2010-02-22 06:56:36  +0700]
+
+input = file pdf, satu file untuk satu bab (1 huruf). tiap file
+mengandung cover + kata pengantar (image 2 halaman) + daftar isi. ini
+yang bikin jadi gede gak perlu (3MB+ per file).
+
+formatnya keliatannya jauh lebih simpel daripada kbbi, subentri gak
+digabung melainkan diberi <br> (ini kemungkinan utk mempertebal buku,
+karena kan tesaurus isinya gak sebanyak kamus).
+
+
+[#, bdg, Mon, 2010-02-22 06:58:14  +0700]
+
+procedure/algorithm:
+
+1. pdf diconvert dulu ke html dengan pdftohtml -c. tanpa opsi -c,
+kedua kolom jadi melebur jadi satu. dengan pdftotext, <b> hilang
+padahal ini perlu untuk penanda awal entri.
+
+2. cover, kata pengantar, daftar isi dibuang dulu (8 halaman).
+
