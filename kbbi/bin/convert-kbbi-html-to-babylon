@@ -236,7 +236,7 @@ for my $r (@raw_entries) {
         next if $i == 0;
         my $alasan = "";
         my $s = $subentries[$i];
-        if ($s =~ m!^(?:</i>\s*)?<b>\s*\d+\s*</b>!) { $alasan = "arti lain" }
+        if ($s =~ m!^(?:</i>\s*)?<b>\s*(?:\d+\s*[a-z]?|[a-z])\s*</b>!) { $alasan = "arti lain" }
         elsif ($s !~ m!~|--|&#183;!) { $alasan = "contoh kalimat" }
         elsif ($s =~ m!^<i>[^<]+</i>$!) { $alasan = "contoh kalimat (2)" }
         elsif ($s =~ m!^.+?</i>$! && $s !~ /&#183;/) { $alasan = "contoh kalimat (3)" }
@@ -343,7 +343,7 @@ for my $e (sort keys %entries) {
 
     for (@$defs) {
         s/\n//g;
-        s!<b>\s*(\d+)\s*</b>!"($1)"!eg;
+        s!<b>\s*(\d+\s*?[a-z]?|[a-z])\s*</b>!"($1)"!eg;
         $_ = decode_entities($_);
         s/<[^>]+>//g;
         tr/\xe9\x97\x93\x94\xb4\xfe\xb7/E\-""'p./; # XXX: stardict kok gak mau nampilin \xe9 dll ya, kan UTF8?
