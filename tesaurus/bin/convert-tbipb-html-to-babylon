@@ -47,12 +47,14 @@ while (<>) {
         $oldentry = $entry;
         $entry = $tmp1;
 
-        # visual markup again: <b>ahli 1</b> blah...
-        if ($entry =~ s/ (\d+)$//) {
-            $tmp2 = "$1 $tmp2";
+        # visual markup again: <b>ahli 1</b> blah...  atau  <b>delima (</b>ki) blah...
+        if ($entry =~ s/ (\d+|\(|,)\s*$//) {
+            $tmp2 = $1 . ($1 eq '(' ? '' : ' ') . $tmp2;
         }
 
-        @content = ($tmp2);
+        @content = (strip_tags($tmp2));
+
+        $entry = strip_tags($entry);
 
         if ($entry =~ /--|~/) {
             if (!$superentry) {
@@ -67,7 +69,7 @@ while (<>) {
 
   L1:
     unless ($notcond) {
-        push @content, $l1;
+        push @content, strip_tags($l1);
     }
 }
 
@@ -96,11 +98,12 @@ sub print_entry {
         $content .= "$content0->[$i]";
         $content .= $sep if $content0->[$i];
     }
+    $content =~ s/\s+/ /g; # masih mungkin terbentuk dobel spaces lagi abis penggabungan baris
     for (@entries) {
         # problem 2: visual markup generates stuffs like <b>foo<i> </b>ki</i>
         print #"ENTRY:",
-            strip_tags($_), "\n";
-        print mark_markers(strip_tags($content)), "\n\n";
+            $_, "\n";
+        print mark_markers($content), "\n\n";
     }
 }
 
