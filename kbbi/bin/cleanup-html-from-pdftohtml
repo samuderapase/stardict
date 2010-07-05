@@ -1,0 +1,36 @@
+#!/usr/bin/perl -0777 -nw
+
+use strict;
+use FindBin '$Bin';
+
+=head1 DESCRIPTION
+
+proses membuat kamus stardict kbbi dimulai pertama2x dengan
+mengkonversi file pdf sumber ke html dengan "pdftohtml -c" (jika tanpa
+-c maka 2 kolom akan bercampur teksnya).
+
+lalu digunakan skrip ini untuk membersihkannya.
+
+=cut
+
+# buang kulit
+s!.+<BODY[^>]*>!!s;
+s!</BODY>.*!!s;
+s!<IMG[^>]*>!!sg;
+
+#buang DIV dan <nobr>, gak perlu
+s!</?DIV[^>]*>!!g;
+s!</?nobr>!!g;
+
+# sup
+s!<span class="ft4">(.+?)</span>!<sup>$1</sup>!g;
+
+# buang semua kelasa lain (gak terlalu indikatif)
+s!<span class="[^"]+">|</span>!!g;
+
+# buang nomor halaman atau label huruf atau baris kosong
+s!^(\d*&nbsp;)$!!mg;
+s!^<b>[A-Z]</b>$!!mg;
+s!^\s*\n+!!mig;
+
+print;
